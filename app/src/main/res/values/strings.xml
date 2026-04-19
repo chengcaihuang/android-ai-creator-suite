@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI鍒涗綔濂椾欢</string>
+    
+    <!-- 搴曢儴瀵艰埅 -->
+    <string name="nav_home">棣栭〉</string>
+    <string name="nav_create">鍒涗綔</string>
+    <string name="nav_publish">鍒嗗彂</string>
+    <string name="nav_monetize">鍙樼幇</string>
+    <string name="nav_profile">鎴戠殑</string>
+    
+    <!-- 棣栭〉 -->
+    <string name="home_title">AI鍒涗綔濂椾欢</string>
+    <string name="home_subtitle">璁╁垱浣滄洿绠€鍗曪紝璁╁彉鐜版洿杞绘澗</string>
+    <string name="home_quick_start">蹇€熷紑濮?/string>
+    <string name="home_today_stats">浠婃棩鍒涗綔鏁版嵁</string>
+    <string name="home_hot_templates">鐑棬妯℃澘</string>
+    
+    <!-- 鍒涗綔椤?-->
+    <string name="create_tab_text">鏂囨鐢熸垚</string>
+    <string name="create_tab_image">鍥惧儚鐢熸垚</string>
+    <string name="create_tab_script">瑙嗛鑴氭湰</string>
+    <string name="create_select_style">閫夋嫨椋庢牸</string>
+    <string name="create_input_hint">杈撳叆涓婚鎴栧叧閿瘝</string>
+    <string name="create_input_example">渚嬪锛氬浣曟彁楂樺伐浣滄晥鐜?/string>
+    <string name="create_generate_title">鐢熸垚鏍囬</string>
+    <string name="create_generate_content">鐢熸垚姝ｆ枃</string>
+    <string name="create_result">鐢熸垚缁撴灉</string>
+    
+    <!-- 鍒嗗彂椤?-->
+    <string name="publish_title">鍐呭鍒嗗彂</string>
+    <string name="publish_select_platform">閫夋嫨鍙戝竷骞冲彴</string>
+    <string name="publish_publish_now">涓€閿彂甯冨埌宸查€夊钩鍙?/string>
+    <string name="publish_connect_account">杩炴帴璐﹀彿</string>
+    
+    <!-- 鍙樼幇椤?-->
+    <string name="monetize_title">鍙樼幇瀛﹂櫌</string>
+    <string name="monetize_monthly_earning">鏈湀鏀剁泭</string>
+    <string name="monetize_paths">鍙樼幇璺緞</string>
+    <string name="monetize_tutorials">鐑棬鏁欑▼</string>
+    
+    <!-- 涓汉涓績 -->
+    <string name="profile_title">鎴戠殑</string>
+    <string name="profile_creator">鍒涗綔鑰?/string>
+    <string name="profile_create_days">鍒涗綔澶╂暟</string>
+    <string name="profile_total_earnings">绱鏀剁泭</string>
+    <string name="profile_settings">璐﹀彿璁剧疆</string>
+    <string name="profile_earnings">鏀剁泭绠＄悊</string>
+    <string name="profile_help">甯姪涓庡弽棣?/string>
+    <string name="profile_about">鍏充簬鎴戜滑</string>
+    <string name="profile_upgrade_pro">鍗囩骇 Pro 鐗堟湰</string>
+    
+    <!-- 閫氱敤 -->
+    <string name="loading">鍔犺浇涓?..</string>
+    <string name="error">鍑洪敊浜?/string>
+    <string name="retry">閲嶈瘯</string>
+    <string name="confirm">纭畾</string>
+    <string name="cancel">鍙栨秷</string>
+    <string name="save">淇濆瓨</string>
+    <string name="copy">澶嶅埗</string>
+    <string name="share">鍒嗕韩</string>
+</resources>

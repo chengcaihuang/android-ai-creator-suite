@@ -1,16 +1,21 @@
-package com.aicreator.suite.ui
+package com.aicreator.suite.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.aicreator.suite.data.model.*
+import com.aicreator.suite.ui.viewmodel.HomeViewModel
 
 /**
  * 首页
@@ -19,147 +24,284 @@ import androidx.compose.ui.unit.dp
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
-    Column(
+fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel(),
+    onNavigateToCreate: () -> Unit = {},
+    onNavigateToPublish: () -> Unit = {},
+    onNavigateToMonetize: () -> Unit = {}
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val user by viewModel.user.collectAsState()
+    val todayStats by viewModel.todayStats.collectAsState()
+    val quickActions by viewModel.quickActions.collectAsState()
+    val recommendations by viewModel.recommendations.collectAsState()
+    val recentActivities by viewModel.recentActivities.collectAsState()
+    val todos by viewModel.todos.collectAsState()
+    val announcements by viewModel.announcements.collectAsState()
+
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 欢迎标题
-        Text(
-            text = "AI创作套件",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
+        // 欢迎区域
+        item {
+            WelcomeSection(user = user, streak = user.streak)
+        }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "让创作更简单，让变现更轻松",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 快速入口
-        Text(
-            text = "快速开始",
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(quickActions.size) { index ->
-                QuickActionCard(quickActions[index])
+        // 系统公告
+        if (announcements.isNotEmpty()) {
+            item {
+                AnnouncementBanner(announcements.first())
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // 今日数据卡片
+        item {
+            TodayStatsCard(stats = todayStats)
+        }
 
-        // 今日数据
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+        // 快捷入口
+        item {
+            Text(
+                text = "快捷入口",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "今日创作数据",
-                    style = MaterialTheme.typography.titleMedium
+        }
+
+        item {
+            QuickActionsGrid(
+                actions = quickActions,
+                onCreateClick = onNavigateToCreate,
+                onPublishClick = onNavigateToPublish,
+                onMonetizeClick = onNavigateToMonetize
+            )
+        }
+
+        // 待办事项
+        if (todos.isNotEmpty()) {
+            item {
+                TodosSection(
+                    todos = todos,
+                    onToggle = { viewModel.toggleTodo(it) },
+                    onDelete = { viewModel.deleteTodo(it) }
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatItem("文案", "12")
-                    StatItem("图片", "8")
-                    StatItem("发布", "5")
-                    StatItem("收益", "¥128")
-                }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // 近期活动
+        item {
+            RecentActivitiesSection(activities = recentActivities)
+        }
 
-        // 推荐模板
-        Text(
-            text = "热门模板",
-            style = MaterialTheme.typography.titleMedium
-        )
+        // 推荐内容
+        item {
+            Text(
+                text = "今日推荐",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        item {
+            RecommendationsRow(recommendations = recommendations)
+        }
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            TemplateCard(
-                title = "小红书爆款笔记",
-                description = "适合生活方式、好物分享",
-                usageCount = "12.5万次使用"
-            )
-            TemplateCard(
-                title = "短视频脚本",
-                description = "适合抖音、快手短视频",
-                usageCount = "8.3万次使用"
-            )
-            TemplateCard(
-                title = "公众号文章",
-                description = "适合深度内容创作",
-                usageCount = "6.1万次使用"
-            )
+        // 底部间距
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-fun QuickActionCard(action: QuickAction) {
+fun WelcomeSection(user: DashboardUser, streak: Int) {
     Card(
-        modifier = Modifier
-            .width(120.dp)
-            .height(100.dp),
-        onClick = { /* TODO: 导航到对应页面 */ }
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "你好，${user.name}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "持续创作第 $streak 天 💪",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.LocalFireDepartment,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "Lv.${user.level}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Text(
+                    text = "${user.points} 积分",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AnnouncementBanner(announcement: Announcement) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        ),
+        onClick = { /* 查看公告详情 */ }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = action.icon,
-                contentDescription = action.label,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
+                imageVector = when (announcement.type) {
+                    AnnouncementType.FEATURE -> Icons.Default.AutoAwesome
+                    AnnouncementType.UPDATE -> Icons.Default.Update
+                    AnnouncementType.TIP -> Icons.Default.Lightbulb
+                    AnnouncementType.CAMPAIGN -> Icons.Default.Campaign
+                },
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onTertiaryContainer
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = action.label,
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = announcement.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Text(
+                    text = announcement.content,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
+                    maxLines = 1
+                )
+            }
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onTertiaryContainer
             )
         }
     }
 }
 
 @Composable
-fun StatItem(label: String, value: String) {
+fun TodayStatsCard(stats: TodayStats) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "今日数据",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "📅 ${java.text.SimpleDateFormat("MM/dd", java.util.Locale.getDefault()).format(java.util.Date())}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatItem(
+                    icon = Icons.Default.Edit,
+                    value = stats.contentCreated.toString(),
+                    label = "创作",
+                    color = MaterialTheme.colorScheme.primary
+                )
+                StatItem(
+                    icon = Icons.Default.Send,
+                    value = stats.contentPublished.toString(),
+                    label = "发布",
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                StatItem(
+                    icon = Icons.Default.Visibility,
+                    value = formatNumber(stats.views),
+                    label = "浏览",
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+                StatItem(
+                    icon = Icons.Default.AttachMoney,
+                    value = "¥${stats.earnings}",
+                    label = "收益",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StatItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    value: String,
+    label: String,
+    color: androidx.compose.ui.graphics.Color
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(Modifier.height(4.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = color
         )
         Text(
             text = label,
@@ -170,74 +312,299 @@ fun StatItem(label: String, value: String) {
 }
 
 @Composable
-fun TemplateCard(
-    title: String,
-    description: String,
-    usageCount: String
+fun QuickActionsGrid(
+    actions: List<QuickAction>,
+    onCreateClick: () -> Unit,
+    onPublishClick: () -> Unit,
+    onMonetizeClick: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { /* TODO: 使用模板 */ }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Description,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.size(40.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = usageCount,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline
+            actions.take(2).forEach { action ->
+                QuickActionCard(
+                    action = action,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        when (action.id) {
+                            "create_text", "create_image" -> onCreateClick()
+                            "publish" -> onPublishClick()
+                            "monetize" -> onMonetizeClick()
+                        }
+                    }
                 )
             }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            actions.drop(2).take(2).forEach { action ->
+                QuickActionCard(
+                    action = action,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        when (action.id) {
+                            "create_text", "create_image" -> onCreateClick()
+                            "publish" -> onPublishClick()
+                            "monetize" -> onMonetizeClick()
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun QuickActionCard(
+    action: QuickAction,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = modifier.height(100.dp),
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
             Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = "使用"
+                imageVector = when (action.icon) {
+                    "edit" -> Icons.Default.Edit
+                    "image" -> Icons.Default.Image
+                    "share" -> Icons.Default.Share
+                    "school" -> Icons.Default.School
+                    else -> Icons.Default.AutoAwesome
+                },
+                contentDescription = action.title,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(28.dp)
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = action.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = action.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
             )
         }
     }
 }
 
-data class QuickAction(
-    val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
-)
-
-val quickActions = listOf(
-    QuickAction("写文案", Icons.Default.Edit),
-    QuickAction("生成图片", Icons.Default.Image),
-    QuickAction("写脚本", Icons.Default.Movie),
-    QuickAction("优化内容", Icons.Default.AutoFixHigh)
-)
-
-// 临时解决方案，避免LazyRow在Column中的问题
 @Composable
-fun LazyRow(
-    modifier: Modifier = Modifier,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-    content: @Composable androidx.compose.foundation.lazy.LazyListScope.() -> Unit
+fun TodosSection(
+    todos: List<Todo>,
+    onToggle: (String) -> Unit,
+    onDelete: (String) -> Unit
 ) {
-    androidx.compose.foundation.lazy.LazyRow(
-        modifier = modifier,
-        horizontalArrangement = horizontalArrangement,
-        content = content
-    )
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "待办事项",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(12.dp))
+
+            todos.take(3).forEach { todo ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = todo.isCompleted,
+                        onCheckedChange = { onToggle(todo.id) }
+                    )
+                    Text(
+                        text = todo.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    PriorityBadge(priority = todo.priority)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PriorityBadge(priority: Priority) {
+    val (color, text) = when (priority) {
+        Priority.HIGH -> MaterialTheme.colorScheme.error to "高"
+        Priority.MEDIUM -> MaterialTheme.colorScheme.tertiary to "中"
+        Priority.LOW -> MaterialTheme.colorScheme.outline to "低"
+    }
+
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = color.copy(alpha = 0.1f)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+        )
+    }
+}
+
+@Composable
+fun RecentActivitiesSection(activities: List<Activity>) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "近期活动",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(12.dp))
+
+            activities.take(3).forEach { activity ->
+                ActivityItem(activity = activity)
+            }
+        }
+    }
+}
+
+@Composable
+fun ActivityItem(activity: Activity) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = when (activity.type) {
+                ActivityType.CONTENT_CREATED -> Icons.Default.Edit
+                ActivityType.CONTENT_PUBLISHED -> Icons.Default.Send
+                ActivityType.CONTENT_LIKED -> Icons.Default.Favorite
+                ActivityType.EARNINGS -> Icons.Default.AttachMoney
+                ActivityType.MILESTONE -> Icons.Default.EmojiEvents
+            },
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = activity.title,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = formatTimeAgo(activity.timestamp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun RecommendationsRow(recommendations: List<Recommendation>) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(recommendations) { recommendation ->
+            RecommendationCard(recommendation = recommendation)
+        }
+    }
+}
+
+@Composable
+fun RecommendationCard(recommendation: Recommendation) {
+    Card(
+        modifier = Modifier
+            .width(200.dp)
+            .height(140.dp),
+        onClick = { /* 打开推荐 */ }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Icon(
+                imageVector = when (recommendation.type) {
+                    RecommendationType.TUTORIAL -> Icons.Default.School
+                    RecommendationType.TEMPLATE -> Icons.Default.Description
+                    RecommendationType.TOOL -> Icons.Default.Build
+                    RecommendationType.TREND -> Icons.Default.TrendingUp
+                },
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Column {
+                Text(
+                    text = recommendation.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+                Text(
+                    text = recommendation.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2
+                )
+            }
+            TextButton(
+                onClick = { },
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text(recommendation.actionLabel)
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
+
+private fun formatNumber(number: Int): String {
+    return when {
+        number >= 1000000 -> "${number / 1000000}M"
+        number >= 1000 -> "${number / 1000}K"
+        else -> number.toString()
+    }
+}
+
+private fun formatTimeAgo(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timestamp
+    val minutes = diff / (1000 * 60)
+    val hours = minutes / 60
+    val days = hours / 24
+
+    return when {
+        minutes < 60 -> "${minutes}分钟前"
+        hours < 24 -> "${hours}小时前"
+        days < 7 -> "${days}天前"
+        else -> "${days / 7}周前"
+    }
 }
